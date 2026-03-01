@@ -19,6 +19,7 @@ on:
         options:
           - x86-64
           - ramips-mt7621
+          - cudy_tr3000-256mb-v1
 
 env:
   TZ: Asia/Shanghai
@@ -90,3 +91,4 @@ jobs:
       with:
         name: build-log
         path: build.log
+
