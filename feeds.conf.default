@@ -5,6 +5,7 @@ src-git telephony https://git.openwrt.org/feed/telephony.git^2a4541d46199ac96fac
 src-git fanchmwrt https://github.com/fanchmwrt/fanchmwrt-packages.git
 # 添加 OpenClash 源
 src-git openclash https://github.com/vernesong/OpenClash.git;dev
-
 # 添加 kenzok8 小型软件包（可选）
 src-git small https://github.com/kenzok8/small-package.git
+# MTK 闭源驱动 feeds（关键）
+src-git mtk https://github.com/Nossiac/mtk-openwrt-feeds.git;master
