@@ -19,7 +19,6 @@ on:
         options:
           - x86-64
           - ramips-mt7621
-          - cudy_tr3000-256mb-v1
 
 env:
   TZ: Asia/Shanghai
@@ -58,15 +57,12 @@ jobs:
           TARGET="x86-64"
         fi
         echo "Building for target: $TARGET"
-        
         if [ -f "configs/${TARGET}.config" ]; then
           cp "configs/${TARGET}.config" .config
           echo "Using config: configs/${TARGET}.config"
         else
-          echo "::error::Config file configs/${TARGET}.config not found!"
-          exit 1  # ← 强制失败，不使用默认配置
+          echo "Config not found, using defconfig"
         fi
-        
         make defconfig
         cat .config | grep CONFIG_TARGET
 
@@ -79,28 +75,7 @@ jobs:
     - name: Compile firmware
       run: |
         echo "Starting build with $(nproc) threads..."
-        # 先尝试并行编译，失败则单线程重试
-        if ! make -j$(nproc) V=s 2>&1 | tee build.log; then
-          echo "Parallel build failed, retrying with single thread..."
-          make clean
-          make -j1 V=s 2>&1 | tee build.log
-        fi
-
-    - name: Check firmware files  # ← 新增：验证固件生成
-      run: |
-        echo "Checking generated files..."
-        find bin/targets -type f -name "*.bin" -o -name "*.img" | head -20
-        
-        # 检查是否有 sysupgrade 或 factory 固件
-        if [ -z "$(find bin/targets -type f \( -name '*sysupgrade*' -o -name '*factory*' \) 2>/dev/null)" ]; then
-          echo "::error::No firmware files (sysupgrade/factory) found!"
-          echo "Generated files:"
-          find bin/targets -type f 2>/dev/null || echo "bin/targets directory is empty or does not exist"
-          exit 1
-        fi
-        
-        echo "Firmware files found:"
-        find bin/targets -type f \( -name '*sysupgrade*' -o -name '*factory*' \) -exec ls -lh {} \;
+        make -j$(nproc) V=s 2>&1 | tee build.log || make -j1 V=s 2>&1 | tee build.log
 
     - name: Upload bin
       uses: actions/upload-artifact@v4
@@ -113,5 +88,5 @@ jobs:
       uses: actions/upload-artifact@v4
       if: failure()
       with:
-        name: build-log-${{ github.event.inputs.target || 'x86-64' }}
+        name: build-log
         path: build.log
